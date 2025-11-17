@@ -17,6 +17,8 @@ func (h *Handler) register(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 	}
 
+	h.services.Authorization.CreateUser(request)
+
 }
 
 func (h *Handler) login(c *gin.Context) {

@@ -1,11 +1,15 @@
 package main
 
 import (
+	"os"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	goback "go.back"
 	"go.back/configs"
 	"go.back/internal/handler"
+	"go.back/internal/repository"
+	"go.back/internal/service"
 )
 
 func main() {
@@ -14,7 +18,22 @@ func main() {
 		logrus.Fatalf("Error reading config file: %s", err)
 	}
 
-	handlers := handler.NewHandler()
+	db, err := configs.NewPostgresDB(configs.Config{
+		Host:     viper.GetString("db.host"),
+		Port:     viper.GetString("db.port"),
+		Username: viper.GetString("db.username"),
+		Password: os.Getenv("DB_PASSWORD"),
+		DBName:   viper.GetString("db.dbname"),
+		SSLMode:  viper.GetString("db.sslmode"),
+	})
+
+	if err != nil {
+		logrus.Fatalf("failed to init db: %s", err.Error())
+	}
+
+	repository := repository.NewRepository(db)
+	services := service.NewService(repository)
+	handlers := handler.NewHandler(services)
 
 	server := new(goback.Server)
 
