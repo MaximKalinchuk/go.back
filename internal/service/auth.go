@@ -6,14 +6,18 @@ import (
 )
 
 type AuthService struct {
-	repository repository.Repository
+	repository repository.Authorization
 }
 
 func NewAuthService(repository repository.Authorization) *AuthService {
-	return &AuthService{}
+	return &AuthService{
+		repository: repository,
+	}
 }
 
 func (s *AuthService) CreateUser(request dto.Register) (int, error) {
+
 	s.repository.CreateUser(request)
+
 	return 0, nil
 }

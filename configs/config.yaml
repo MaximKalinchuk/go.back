@@ -4,5 +4,5 @@ db:
     username: "lastmile"
     host: "localhost"
     port: "5433"
-    dbname: "golang"
+    dbname: "less"
     sslmode: "disable"

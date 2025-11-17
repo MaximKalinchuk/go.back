@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
+	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/subosito/gotenv"
 	goback "go.back"
 	"go.back/configs"
 	"go.back/internal/handler"
@@ -15,8 +18,16 @@ import (
 func main() {
 	logrus.SetFormatter(new(logrus.JSONFormatter))
 	if err := configs.InitConfig(); err != nil {
-		logrus.Fatalf("Error reading config file: %s", err)
+		logrus.Fatalf("Ошибка чтения конфигурационных файлов: %s", err)
 	}
+
+	err := gotenv.Load()
+
+	if err != nil {
+		logrus.Fatalf("Ошибка загрузки env: %s", err.Error())
+	}
+
+	fmt.Println(os.Getenv("DB_PASSWORD"))
 
 	db, err := configs.NewPostgresDB(configs.Config{
 		Host:     viper.GetString("db.host"),
@@ -28,7 +39,7 @@ func main() {
 	})
 
 	if err != nil {
-		logrus.Fatalf("failed to init db: %s", err.Error())
+		logrus.Fatalf("Ошибка инициализации базы данных: %s", err.Error())
 	}
 
 	repository := repository.NewRepository(db)
@@ -38,7 +49,7 @@ func main() {
 	server := new(goback.Server)
 
 	if err := server.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
-		logrus.Fatalf("error running http server: %s", err.Error())
+		logrus.Fatalf("Ошибка старта сервера: %s", err.Error())
 	}
 
 }
