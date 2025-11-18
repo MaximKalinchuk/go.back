@@ -6,7 +6,7 @@ import (
 )
 
 type Authorization interface {
-	CreateUser(request dto.Register) (int, error)
+	CreateUser(request dto.Register) (string, error)
 }
 
 type Service struct {

@@ -4,21 +4,28 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"go.back/internal/dto"
+	"go.back/pkg/utils"
 )
 
 func (h *Handler) register(c *gin.Context) {
 	var request dto.Register
 
 	if err := c.BindJSON(&request); err != nil {
-		logrus.Fatalln(err.Error())
-
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		utils.ResponseError(c, http.StatusBadRequest, err.Error())
+		return
 	}
 
-	h.services.Authorization.CreateUser(request)
+	userId, err := h.services.Authorization.CreateUser(request)
 
+	if err != nil {
+		utils.ResponseError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusCreated, map[string]interface{}{
+		"id": userId,
+	})
 }
 
 func (h *Handler) login(c *gin.Context) {
