@@ -10,7 +10,7 @@ type Repository struct {
 }
 
 type Authorization interface {
-	CreateUser(request dto.Register) (int, error)
+	CreateUser(request dto.Register) (string, error)
 }
 
 func NewRepository(db *sqlx.DB) *Repository {

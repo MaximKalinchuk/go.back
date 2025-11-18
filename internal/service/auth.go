@@ -15,9 +15,7 @@ func NewAuthService(repository repository.Authorization) *AuthService {
 	}
 }
 
-func (s *AuthService) CreateUser(request dto.Register) (int, error) {
-
-	s.repository.CreateUser(request)
-
-	return 0, nil
+func (s *AuthService) CreateUser(request dto.Register) (string, error) {
+	userId, err := s.repository.CreateUser(request)
+	return userId, err
 }

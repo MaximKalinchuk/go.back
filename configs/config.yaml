@@ -4,5 +4,5 @@ db:
     username: "lastmile"
     host: "localhost"
     port: "5433"
-    dbname: "less"
+    dbname: "go"
     sslmode: "disable"
