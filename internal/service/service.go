@@ -7,6 +7,7 @@ import (
 
 type Authorization interface {
 	CreateUser(request dto.Register) (string, error)
+	GenerateToken(request dto.Login) (string, error)
 }
 
 type Service struct {
@@ -15,6 +16,6 @@ type Service struct {
 
 func NewService(repository *repository.Repository) *Service {
 	return &Service{
-		Authorization: NewAuthService(repository.Authorization),
+		Authorization: NewAuthService(repository.User),
 	}
 }
