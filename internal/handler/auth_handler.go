@@ -29,5 +29,12 @@ func (h *Handler) register(c *gin.Context) {
 }
 
 func (h *Handler) login(c *gin.Context) {
+	var requset dto.Login
 
+	if err := c.BindJSON(&requset); err != nil {
+		utils.ResponseError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	h.services.Authorization.GenerateToken(requset)
 }
