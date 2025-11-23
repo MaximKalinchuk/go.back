@@ -1,18 +1,16 @@
 package service
 
 import (
+	"errors"
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
+	"github.com/spf13/viper"
 	"go.back/internal/dto"
 	"go.back/internal/repository"
 	"golang.org/x/crypto/bcrypt"
-)
-
-const (
-	signInKey = "qrkjk#4#%35FSFJlja#4353KSFjH"
-	tokenTTL  = 24 * time.Hour
 )
 
 type AuthService struct {
@@ -26,7 +24,7 @@ func NewAuthService(repository repository.User) *AuthService {
 }
 
 func (s *AuthService) CreateUser(request dto.Register) (string, error) {
-	passwordHash, err := s.GeneratePasswordHash(request.Password)
+	passwordHash, err := s.generatePasswordHash(request.Password)
 
 	if err != nil {
 		return "", err
@@ -43,26 +41,32 @@ func (s *AuthService) GenerateToken(request dto.Login) (string, error) {
 	user, err := s.repository.GetUser(request.Email)
 
 	if err != nil {
-		return "", err
+		return "", errors.New("пользователь не найден")
+	}
+
+	err = s.checkPassword(request.Password, user.PasswordHash)
+
+	if err != nil {
+		return "", errors.New("неверный email или пароль")
 	}
 
 	type tokenClaims struct {
 		jwt.StandardClaims
-		UserId uuid.UUID `json:"user_id"`
+		UserId uuid.UUID `json:"userId"`
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
+			ExpiresAt: time.Now().Add(viper.GetDuration("jwt.token_ttl")).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
 		user.Id,
 	})
 
-	return token.SignedString([]byte(signInKey))
+	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 }
 
-func (s *AuthService) GeneratePasswordHash(password string) (string, error) {
+func (s *AuthService) generatePasswordHash(password string) (string, error) {
 	byteHashPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 
 	if err != nil {
@@ -70,4 +74,12 @@ func (s *AuthService) GeneratePasswordHash(password string) (string, error) {
 	}
 
 	return string(byteHashPassword), nil
+}
+
+func (s *AuthService) checkPassword(password, passwordHash string) error {
+	err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -6,3 +6,6 @@ db:
     port: "5433"
     dbname: "go"
     sslmode: "disable"
+
+jwt:
+    token_ttl: "24h"

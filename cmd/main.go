@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	_ "github.com/lib/pq"
@@ -26,8 +25,6 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("Ошибка загрузки env: %s", err.Error())
 	}
-
-	fmt.Println(os.Getenv("DB_PASSWORD"))
 
 	db, err := configs.NewPostgresDB(configs.Config{
 		Host:     viper.GetString("db.host"),
