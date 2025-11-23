@@ -22,7 +22,7 @@ func (s *Server) Run(port string, handler http.Handler) error {
 		WriteTimeout:   10 * time.Second,
 	}
 
-	fmt.Printf("\nServer starting on port: %s", viper.GetString("port"))
+	fmt.Printf("\nServer starting on port: %s\n", viper.GetString("port"))
 
 	server := s.httpServer.ListenAndServe()
 

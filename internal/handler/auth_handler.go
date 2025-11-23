@@ -36,5 +36,14 @@ func (h *Handler) login(c *gin.Context) {
 		return
 	}
 
-	h.services.Authorization.GenerateToken(requset)
+	token, err := h.services.Authorization.GenerateToken(requset)
+
+	if err != nil {
+		utils.ResponseError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"token": token,
+	})
 }
