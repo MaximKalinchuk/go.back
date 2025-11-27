@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"go.back/internal/middleware"
 	"go.back/internal/service"
 )
 
@@ -17,6 +18,8 @@ func NewHandler(services *service.Service) *Handler {
 
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
+
+	router.Use(middleware.CORSMiddleware())
 
 	auth := router.Group("auth")
 	{
