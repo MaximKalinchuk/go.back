@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"os"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 	"go.back/internal/dto"
 	"go.back/internal/repository"
+	custom_error "go.back/pkg/customerror"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -41,13 +41,13 @@ func (s *AuthService) GenerateToken(request dto.Login) (string, error) {
 	user, err := s.repository.GetUser(request.Email)
 
 	if err != nil {
-		return "", errors.New("пользователь не найден")
+		return "", custom_error.UserNotFound
 	}
 
 	err = s.checkPassword(request.Password, user.PasswordHash)
 
 	if err != nil {
-		return "", errors.New("неверный email или пароль")
+		return "", custom_error.InvalidCredentials
 	}
 
 	type tokenClaims struct {
