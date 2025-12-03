@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"go.back/internal/dto"
+	dto "go.back/internal/dto/auth"
 )
 
 func (h *Handler) register(c *gin.Context) {

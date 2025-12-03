@@ -7,9 +7,9 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
-	"go.back/internal/dto"
+	authdto "go.back/internal/dto/auth"
 	"go.back/internal/repository"
-	custom_error "go.back/pkg/customerror"
+	customerror "go.back/pkg/customerror"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -23,7 +23,7 @@ func NewAuthService(repository repository.User) *AuthService {
 	}
 }
 
-func (s *AuthService) CreateUser(request dto.Register) (string, error) {
+func (s *AuthService) CreateUser(request authdto.Register) (string, error) {
 	passwordHash, err := s.generatePasswordHash(request.Password)
 
 	if err != nil {
@@ -36,18 +36,18 @@ func (s *AuthService) CreateUser(request dto.Register) (string, error) {
 	return userId, err
 }
 
-func (s *AuthService) GenerateToken(request dto.Login) (string, error) {
+func (s *AuthService) GenerateToken(request authdto.Login) (string, error) {
 
-	user, err := s.repository.GetUser(request.Email)
+	user, err := s.repository.GetUserByEmail(request.Email)
 
 	if err != nil {
-		return "", custom_error.UserNotFound
+		return "", customerror.UserNotFound
 	}
 
 	err = s.checkPassword(request.Password, user.PasswordHash)
 
 	if err != nil {
-		return "", custom_error.InvalidCredentials
+		return "", customerror.InvalidCredentials
 	}
 
 	type tokenClaims struct {

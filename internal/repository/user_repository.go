@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"go.back/configs"
-	"go.back/internal/dto"
+	authdto "go.back/internal/dto/auth"
 	"go.back/internal/entity"
 )
 
@@ -18,7 +18,7 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (u *UserRepository) CreateUser(request dto.Register) (string, error) {
+func (u *UserRepository) CreateUser(request authdto.Register) (string, error) {
 	var id string
 
 	query := fmt.Sprintf("INSERT INTO %s (id, username, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING id", configs.UsersTable)
@@ -31,11 +31,20 @@ func (u *UserRepository) CreateUser(request dto.Register) (string, error) {
 	return id, nil
 }
 
-func (u *UserRepository) GetUser(email string) (entity.User, error) {
+func (u *UserRepository) GetUserByEmail(email string) (entity.User, error) {
 	var user entity.User
 
 	query := fmt.Sprintf("SELECT * FROM %s WHERE email = $1", configs.UsersTable)
 	err := u.db.Get(&user, query, email)
+
+	return user, err
+}
+
+func (u *UserRepository) GetUserById(id string) (entity.User, error) {
+	var user entity.User
+
+	query := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", configs.UsersTable)
+	err := u.db.Get(&user, query, id)
 
 	return user, err
 }

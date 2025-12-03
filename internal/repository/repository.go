@@ -2,7 +2,7 @@ package repository
 
 import (
 	"github.com/jmoiron/sqlx"
-	"go.back/internal/dto"
+	authdto "go.back/internal/dto/auth"
 	"go.back/internal/entity"
 )
 
@@ -11,8 +11,9 @@ type Repository struct {
 }
 
 type User interface {
-	CreateUser(request dto.Register) (string, error)
-	GetUser(email string) (entity.User, error)
+	CreateUser(request authdto.Register) (string, error)
+	GetUserByEmail(email string) (entity.User, error)
+	GetUserById(email string) (entity.User, error)
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
