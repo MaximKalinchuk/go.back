@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	userdto "go.back/internal/dto/user"
+	"go.back/pkg/customerror"
 )
 
 func (h *Handler) getUser(c *gin.Context) {
@@ -12,10 +14,10 @@ func (h *Handler) getUser(c *gin.Context) {
 	user, err := h.services.User.GetUser(id)
 
 	if err != nil {
-		HandleHTTPError(c, err)
+		customerror.HandleHTTPError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, userdto.FromEntity(&user))
 
 }

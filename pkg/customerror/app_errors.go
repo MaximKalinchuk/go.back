@@ -16,5 +16,6 @@ func (e *AppError) Error() string {
 var (
 	UserNotFound       = &AppError{http.StatusNotFound, "Пользователь не найден"}
 	InvalidCredentials = &AppError{http.StatusUnauthorized, "Неверный email или пароль"}
+	Unauthorized       = &AppError{http.StatusUnauthorized, "Unauthorized"}
 	ErrInternalServer  = &AppError{http.StatusInternalServerError, "Internal server error"}
 )
