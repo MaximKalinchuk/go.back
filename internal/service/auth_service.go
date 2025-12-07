@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"os"
 	"time"
 
@@ -13,6 +14,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type tokenClaims struct {
+	jwt.StandardClaims
+	UserId uuid.UUID `json:"userId"`
+}
 type AuthService struct {
 	repository repository.User
 }
@@ -50,11 +55,6 @@ func (s *AuthService) GenerateToken(request authdto.Login) (string, error) {
 		return "", customerror.InvalidCredentials
 	}
 
-	type tokenClaims struct {
-		jwt.StandardClaims
-		UserId uuid.UUID `json:"userId"`
-	}
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(viper.GetDuration("jwt.token_ttl")).Unix(),
@@ -64,6 +64,26 @@ func (s *AuthService) GenerateToken(request authdto.Login) (string, error) {
 	})
 
 	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+}
+
+func (s *AuthService) ParseToken(accessToken string) (string, error) {
+	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid signing method")
+		}
+
+		return []byte(os.Getenv("JWT_SECRET")), nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	claims, ok := token.Claims.(*tokenClaims)
+	if !ok {
+		return "", errors.New("token claims are not of type *tokenClaims")
+	}
+
+	return claims.UserId.String(), nil
 }
 
 func (s *AuthService) generatePasswordHash(password string) (string, error) {

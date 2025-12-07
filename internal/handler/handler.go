@@ -7,19 +7,21 @@ import (
 )
 
 type Handler struct {
-	services *service.Service
+	services   *service.Service
+	middleware *middleware.Middleware
 }
 
-func NewHandler(services *service.Service) *Handler {
+func NewHandler(services *service.Service, middleware *middleware.Middleware) *Handler {
 	return &Handler{
-		services: services,
+		services:   services,
+		middleware: middleware,
 	}
 }
 
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
 
-	router.Use(middleware.CORSMiddleware())
+	router.Use(h.middleware.CORSMiddleware())
 
 	auth := router.Group("auth")
 	{
@@ -27,7 +29,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		auth.POST("login", h.login)
 	}
 
-	api := router.Group("api")
+	api := router.Group("api", h.middleware.UserVerify)
 
 	users := api.Group("users")
 	{

@@ -9,9 +9,14 @@ import (
 )
 
 func (h *Handler) getUser(c *gin.Context) {
-	id := c.Param("id")
+	userId := c.GetString("userId")
 
-	user, err := h.services.User.GetUser(id)
+	if userId == "" {
+		customerror.HandleHTTPError(c, customerror.Unauthorized)
+		return
+	}
+
+	user, err := h.services.User.GetUser(userId)
 
 	if err != nil {
 		customerror.HandleHTTPError(c, err)
