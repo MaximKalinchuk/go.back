@@ -10,6 +10,7 @@ import (
 	goback "go.back"
 	"go.back/configs"
 	"go.back/internal/handler"
+	"go.back/internal/middleware"
 	"go.back/internal/repository"
 	"go.back/internal/service"
 )
@@ -41,7 +42,8 @@ func main() {
 
 	repository := repository.NewRepository(db)
 	services := service.NewService(repository)
-	handlers := handler.NewHandler(services)
+	middleware := middleware.NewMiddleware(services.Authorization)
+	handlers := handler.NewHandler(services, middleware)
 
 	server := new(goback.Server)
 

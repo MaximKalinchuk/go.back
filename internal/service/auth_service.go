@@ -8,11 +8,16 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
-	"go.back/internal/dto"
+	authdto "go.back/internal/dto/auth"
 	"go.back/internal/repository"
+	customerror "go.back/pkg/customerror"
 	"golang.org/x/crypto/bcrypt"
 )
 
+type tokenClaims struct {
+	jwt.StandardClaims
+	UserId uuid.UUID `json:"userId"`
+}
 type AuthService struct {
 	repository repository.User
 }
@@ -23,7 +28,7 @@ func NewAuthService(repository repository.User) *AuthService {
 	}
 }
 
-func (s *AuthService) CreateUser(request dto.Register) (string, error) {
+func (s *AuthService) CreateUser(request authdto.Register) (string, error) {
 	passwordHash, err := s.generatePasswordHash(request.Password)
 
 	if err != nil {
@@ -36,23 +41,18 @@ func (s *AuthService) CreateUser(request dto.Register) (string, error) {
 	return userId, err
 }
 
-func (s *AuthService) GenerateToken(request dto.Login) (string, error) {
+func (s *AuthService) GenerateToken(request authdto.Login) (string, error) {
 
-	user, err := s.repository.GetUser(request.Email)
+	user, err := s.repository.GetUserByEmail(request.Email)
 
 	if err != nil {
-		return "", errors.New("пользователь не найден")
+		return "", customerror.UserNotFound
 	}
 
 	err = s.checkPassword(request.Password, user.PasswordHash)
 
 	if err != nil {
-		return "", errors.New("неверный email или пароль")
-	}
-
-	type tokenClaims struct {
-		jwt.StandardClaims
-		UserId uuid.UUID `json:"userId"`
+		return "", customerror.InvalidCredentials
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
@@ -64,6 +64,26 @@ func (s *AuthService) GenerateToken(request dto.Login) (string, error) {
 	})
 
 	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+}
+
+func (s *AuthService) ParseToken(accessToken string) (string, error) {
+	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid signing method")
+		}
+
+		return []byte(os.Getenv("JWT_SECRET")), nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	claims, ok := token.Claims.(*tokenClaims)
+	if !ok {
+		return "", errors.New("token claims are not of type *tokenClaims")
+	}
+
+	return claims.UserId.String(), nil
 }
 
 func (s *AuthService) generatePasswordHash(password string) (string, error) {
