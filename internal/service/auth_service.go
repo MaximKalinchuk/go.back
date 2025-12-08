@@ -28,19 +28,6 @@ func NewAuthService(repository repository.User) *AuthService {
 	}
 }
 
-func (s *AuthService) CreateUser(request authdto.Register) (string, error) {
-	passwordHash, err := s.generatePasswordHash(request.Password)
-
-	if err != nil {
-		return "", err
-	}
-
-	request.Password = passwordHash
-
-	userId, err := s.repository.CreateUser(request)
-	return userId, err
-}
-
 func (s *AuthService) GenerateToken(request authdto.Login) (string, error) {
 
 	user, err := s.repository.GetUserByEmail(request.Email)
@@ -84,16 +71,6 @@ func (s *AuthService) ParseToken(accessToken string) (string, error) {
 	}
 
 	return claims.UserId.String(), nil
-}
-
-func (s *AuthService) generatePasswordHash(password string) (string, error) {
-	byteHashPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-
-	if err != nil {
-		return "", err
-	}
-
-	return string(byteHashPassword), nil
 }
 
 func (s *AuthService) checkPassword(password, passwordHash string) error {
