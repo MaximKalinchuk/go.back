@@ -7,13 +7,13 @@ import (
 )
 
 type Authorization interface {
-	CreateUser(request authdto.Register) (string, error)
 	GenerateToken(request authdto.Login) (string, error)
 	ParseToken(accessToken string) (string, error)
 }
 
 type User interface {
 	GetUser(id string) (entity.User, error)
+	CreateUser(request authdto.Register) (string, error)
 }
 
 type Service struct {

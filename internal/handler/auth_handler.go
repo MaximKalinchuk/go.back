@@ -16,7 +16,7 @@ func (h *Handler) register(c *gin.Context) {
 		return
 	}
 
-	userId, err := h.services.Authorization.CreateUser(request)
+	userId, err := h.services.User.CreateUser(request)
 
 	if err != nil {
 		customerror.HandleHTTPError(c, err)
