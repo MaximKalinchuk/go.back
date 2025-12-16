@@ -19,8 +19,8 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-var usersConnections = make(map[string][]*websocket.Conn)
-var usersConnectionsMu sync.RWMutex
+var clientsConnections = make(map[string][]*websocket.Conn)
+var clientsConnectionsMu sync.RWMutex
 
 func HandleConnections(c *gin.Context) {
 
@@ -39,19 +39,19 @@ func HandleConnections(c *gin.Context) {
 		logrus.Fatal(err)
 	}
 
-	usersConnectionsMu.Lock()
-	usersConnections[userId] = append(usersConnections[userId], conn)
-	usersConnectionsMu.Unlock()
+	clientsConnectionsMu.Lock()
+	clientsConnections[userId] = append(clientsConnections[userId], conn)
+	clientsConnectionsMu.Unlock()
 
 	logrus.Printf("[WebSocket] Пользователь %s успешно подключился", userId)
-	logrus.Printf("[WebSocket] Количество соединений пользователя %s = %d", userId, len(usersConnections[userId]))
+	logrus.Printf("[WebSocket] Количество соединений пользователя %s = %d", userId, len(clientsConnections[userId]))
 
 	defer func() {
 		conn.Close()
 
-		usersConnectionsMu.Lock()
+		clientsConnectionsMu.Lock()
 		removeUserConnection(userId, conn)
-		usersConnectionsMu.Unlock()
+		clientsConnectionsMu.Unlock()
 
 		log.Printf("[WebSocket] Пользователь %s отключился", userId)
 	}()
@@ -72,16 +72,16 @@ func HandleConnections(c *gin.Context) {
 }
 
 func removeUserConnection(userId string, conn *websocket.Conn) {
-	conns := usersConnections[userId]
+	conns := clientsConnections[userId]
 
 	for i, c := range conns {
 		if c == conn {
-			usersConnections[userId] = append(conns[:i], conns[i+1:]...)
+			clientsConnections[userId] = append(conns[:i], conns[i+1:]...)
 			break
 		}
 	}
 
-	if len(usersConnections[userId]) == 0 {
-		delete(usersConnections, userId)
+	if len(clientsConnections[userId]) == 0 {
+		delete(clientsConnections, userId)
 	}
 }

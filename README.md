@@ -6,12 +6,6 @@
 
  ### Режим разработки:
 
- - Установить зависимости:
-
- ```bash
- $ go mod download
- ```
-
  - В проекте есть миграции, поэтому перед запуском проекта нужно подготовить свои переменные окружения из example.env создав .env файл, запустить PostgreSQL и накатить туда миграции (я использую migrate):
 
  ```bash
@@ -21,5 +15,5 @@ $ migrate -path ./migrations/postgres -database 'postgres://lastmile:<парол
  - Запустить проект:
 
 ```bash
-$ go run cmd/main.go
+$ go run ./cmd/app
 ```
