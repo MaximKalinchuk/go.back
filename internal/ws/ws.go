@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
@@ -8,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
+	wsdto "go.back/internal/ws/dto"
+	wshandlers "go.back/internal/ws/handlers"
 	"go.back/pkg/customerror"
 )
 
@@ -54,15 +57,30 @@ func HandleConnections(c *gin.Context) {
 		clientsConnectionsMu.Unlock()
 
 		log.Printf("[WebSocket] Пользователь %s отключился", userId)
+		logrus.Printf("[WebSocket] Количество соединений пользователя %s = %d", userId, len(clientsConnections[userId]))
 	}()
 
 	for {
+		var parsedMessage wsdto.WsMessage
+
 		messageType, message, err := conn.ReadMessage()
 		if err != nil {
 			logrus.Println(err)
 			break
 		}
-		logrus.Printf("Сообщение от %s: %s", userId, message)
+		err = json.Unmarshal(message, &parsedMessage)
+
+		if err != nil {
+			logrus.Println(err)
+			break
+		}
+
+		switch parsedMessage.Type {
+		case "coordinates":
+			wshandlers.HandleCoordinates(conn, parsedMessage.Data)
+		default:
+			logrus.Printf("[WebSocket] Неизветное событие: %s", parsedMessage.Type)
+		}
 
 		if err := conn.WriteMessage(messageType, message); err != nil {
 			logrus.Println(err)
