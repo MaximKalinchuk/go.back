@@ -9,7 +9,7 @@ import (
 )
 
 func HandleCoordinates(conn *websocket.Conn, data json.RawMessage) error {
-	var coordinates wsdto.Coorditanes
+	var coordinates wsdto.Coordinates
 
 	err := json.Unmarshal(data, &coordinates)
 

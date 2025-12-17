@@ -7,7 +7,7 @@ type WsMessage struct {
 	Data json.RawMessage `json:"data" binding:"required"`
 }
 
-type Coorditanes struct {
+type Coordinates struct {
 	Lat float64 `json:"lat"`
 	Lng float64 `json:"lng"`
 }

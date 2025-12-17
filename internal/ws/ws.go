@@ -39,7 +39,8 @@ func HandleConnections(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.Printf("[WebSocket] Ошибка upgrade: %v", err)
+		return
 	}
 
 	clientsConnectionsMu.Lock()
